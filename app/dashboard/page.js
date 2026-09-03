@@ -3,6 +3,10 @@
 import Link from "next/link";
 
 export default function DashboardPage() {
+  const connectMeta = () => {
+    window.location.href = "/api/auth/meta";
+  };
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <nav className="border-b border-slate-800">
@@ -13,7 +17,7 @@ export default function DashboardPage() {
 
           <Link
             href="/"
-            className="text-slate-400 hover:text-white"
+            className="text-slate-400 hover:text-white transition"
           >
             Logout
           </Link>
@@ -27,12 +31,14 @@ export default function DashboardPage() {
           Manage your Meta advertising from here.
         </p>
 
+        {/* Connection Status */}
         <div className="mt-8 grid md:grid-cols-3 gap-5">
           <Card title="Ad Account" value="Not Connected" />
           <Card title="Facebook Page" value="Not Connected" />
           <Card title="Instagram" value="Not Connected" />
         </div>
 
+        {/* Meta Connection */}
         <div className="mt-8 bg-slate-900 border border-slate-800 rounded-2xl p-7">
           <h2 className="text-2xl font-bold">
             Connect Facebook & Instagram
@@ -44,15 +50,18 @@ export default function DashboardPage() {
           </p>
 
           <button
-            disabled
-            className="mt-6 px-6 py-3 rounded-xl bg-blue-600/50 cursor-not-allowed font-semibold"
+            onClick={connectMeta}
+            className="mt-6 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 transition font-semibold"
           >
-            Meta Login — Coming Next
+            Connect Facebook & Instagram
           </button>
         </div>
 
+        {/* Create Advertisement */}
         <div className="mt-8 bg-slate-900 border border-slate-800 rounded-2xl p-7">
-          <h2 className="text-2xl font-bold">Create Advertisement</h2>
+          <h2 className="text-2xl font-bold">
+            Create Advertisement
+          </h2>
 
           <p className="text-slate-400 mt-2">
             After connecting your Meta account, you'll be able to create
@@ -75,7 +84,10 @@ function Card({ title, value }) {
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
       <p className="text-slate-400">{title}</p>
-      <h3 className="text-xl font-semibold mt-2">{value}</h3>
+
+      <h3 className="text-xl font-semibold mt-2">
+        {value}
+      </h3>
     </div>
   );
 }
