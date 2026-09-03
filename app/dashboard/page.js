@@ -25,7 +25,9 @@ export default function DashboardPage() {
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 py-10">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <h1 className="text-3xl font-bold">
+          Dashboard
+        </h1>
 
         <p className="text-slate-400 mt-2">
           Manage your Meta advertising from here.
@@ -33,9 +35,20 @@ export default function DashboardPage() {
 
         {/* Connection Status */}
         <div className="mt-8 grid md:grid-cols-3 gap-5">
-          <Card title="Ad Account" value="Not Connected" />
-          <Card title="Facebook Page" value="Not Connected" />
-          <Card title="Instagram" value="Not Connected" />
+          <Card
+            title="Ad Account"
+            value="Not Connected"
+          />
+
+          <Card
+            title="Facebook Page"
+            value="Not Connected"
+          />
+
+          <Card
+            title="Instagram"
+            value="Not Connected"
+          />
         </div>
 
         {/* Meta Connection */}
@@ -83,7 +96,9 @@ export default function DashboardPage() {
 function Card({ title, value }) {
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-      <p className="text-slate-400">{title}</p>
+      <p className="text-slate-400">
+        {title}
+      </p>
 
       <h3 className="text-xl font-semibold mt-2">
         {value}
