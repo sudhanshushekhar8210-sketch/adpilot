@@ -3,24 +3,37 @@ import { NextResponse } from "next/server";
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
 
+  // Meta se aane wale saare parameters temporarily check karenge
+  const params = Object.fromEntries(searchParams.entries());
+
+  console.log("META CALLBACK:", params);
+
   const code = searchParams.get("code");
   const error = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
+  const errorReason = searchParams.get("error_reason");
 
+  // Agar Meta ne error bheja
   if (error) {
     return NextResponse.json(
       {
-        error,
-        message: errorDescription || "Meta authorization failed",
+        success: false,
+        metaError: error,
+        reason: errorReason,
+        description: errorDescription,
+        allParams: params,
       },
       { status: 400 }
     );
   }
 
+  // Agar code nahi mila
   if (!code) {
     return NextResponse.json(
       {
+        success: false,
         error: "No authorization code received from Meta",
+        allParams: params,
       },
       { status: 400 }
     );
@@ -50,6 +63,7 @@ export async function GET(request) {
     if (!response.ok || data.error) {
       return NextResponse.json(
         {
+          success: false,
           error: "Failed to exchange authorization code",
           details: data,
         },
@@ -57,20 +71,17 @@ export async function GET(request) {
       );
     }
 
-    const accessToken = data.access_token;
-
-    // Temporary test:
-    // Later we will securely store this token in MongoDB
     return NextResponse.json({
       success: true,
       message: "Meta account connected successfully!",
-      accessToken: accessToken,
+      tokenReceived: !!data.access_token,
     });
   } catch (err) {
     console.error("Meta callback error:", err);
 
     return NextResponse.json(
       {
+        success: false,
         error: "Something went wrong during Meta authentication",
       },
       { status: 500 }
