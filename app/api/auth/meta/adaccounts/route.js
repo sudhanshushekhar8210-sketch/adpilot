@@ -12,13 +12,12 @@ export async function GET() {
     await connectDB();
 
     // ---------------------------------------------
-    // STEP 2: Get latest connected Meta account
+    // STEP 2: Find connected Meta account
     // ---------------------------------------------
 
-    const metaConnection =
-      await MetaConnection.findOne({
-        connected: true,
-      }).sort({ connectedAt: -1 });
+    const metaConnection = await MetaConnection.findOne({
+      connected: true,
+    }).sort({ connectedAt: -1 });
 
     if (!metaConnection) {
       return NextResponse.json(
@@ -31,7 +30,7 @@ export async function GET() {
     }
 
     // ---------------------------------------------
-    // STEP 3: Decrypt access token
+    // STEP 3: Decrypt Meta Access Token
     // ---------------------------------------------
 
     const accessToken = decryptToken(
@@ -39,7 +38,7 @@ export async function GET() {
     );
 
     // ---------------------------------------------
-    // STEP 4: Get Ad Accounts from Meta
+    // STEP 4: Fetch Ad Accounts from Meta
     // ---------------------------------------------
 
     const adAccountsUrl = new URL(
@@ -83,23 +82,72 @@ export async function GET() {
     }
 
     // ---------------------------------------------
-    // STEP 5: Save Ad Accounts in MongoDB
+    // STEP 5: Prepare Ad Accounts
     // ---------------------------------------------
 
-    const adAccounts = data.data || [];
-
-    metaConnection.adAccounts = adAccounts;
-
-    await metaConnection.save();
+    const adAccounts = Array.isArray(data.data)
+      ? data.data
+      : [];
 
     // ---------------------------------------------
-    // STEP 6: Return Ad Accounts
+    // STEP 6: Explicitly UPDATE MongoDB
+    // ---------------------------------------------
+
+    const updatedConnection =
+      await MetaConnection.findOneAndUpdate(
+        {
+          _id: metaConnection._id,
+        },
+        {
+          $set: {
+            adAccounts: adAccounts,
+            updatedAt: new Date(),
+          },
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+    if (!updatedConnection) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to update MetaConnection in MongoDB",
+        },
+        { status: 500 }
+      );
+    }
+
+    // ---------------------------------------------
+    // STEP 7: Verify MongoDB data
+    // ---------------------------------------------
+
+    const savedConnection =
+      await MetaConnection.findById(
+        metaConnection._id
+      ).lean();
+
+    // ---------------------------------------------
+    // STEP 8: Return result
     // ---------------------------------------------
 
     return NextResponse.json({
       success: true,
+
       count: adAccounts.length,
+
       adAccounts,
+
+      mongoDB: {
+        saved: true,
+        documentId: String(metaConnection._id),
+        savedAdAccounts:
+          savedConnection?.adAccounts || [],
+        savedCount:
+          savedConnection?.adAccounts?.length || 0,
+      },
     });
   } catch (error) {
     console.error(
@@ -112,6 +160,10 @@ export async function GET() {
         success: false,
         error:
           "Something went wrong while fetching Ad Accounts",
+        details:
+          process.env.NODE_ENV === "development"
+            ? error.message
+            : undefined,
       },
       { status: 500 }
     );
